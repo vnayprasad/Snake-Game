@@ -1,0 +1,435 @@
+#include<unistd.h>
+#include<iostream>
+#include<conio.h>
+#include<stdio.h>
+#include<time.h>
+#include<istream>
+#include<process.h>
+#include<stdlib.h>
+#include<windows.h> //  header file for gotoxy
+using namespace std;
+COORD coord={0,0}; // this is global variable
+struct pixel
+{
+    int x=NULL,y=NULL;
+};
+void gotoxy(int x,int y)
+ {
+   coord.X=x;
+ coord.Y=y;
+ SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE),coord);
+ }
+ pixel placefood()
+{
+    again:
+    pixel food;
+    unsigned int sval;
+    time_t t;
+    sval=(unsigned)time(&t);
+    srand(sval);
+    food.x=(rand()%100)+1;
+    food.y=(rand()%50)+1;
+    gotoxy(food.x,food.y);
+    cout<<"*";
+    return food;
+}
+int checkfood(pixel *a,pixel food)
+{
+    if((a->x==food.x)&&(a->y==food.y))
+        return 1;
+    else
+        return 0;
+}
+int delay(unsigned int mseconds,char c)
+{
+    int temp=0;
+    char e=NULL;
+    clock_t goal = mseconds + clock();
+    while (goal > clock())
+    {
+        if(kbhit())
+        {
+            e=getch();
+            if(e=='p')
+            {
+                while(!kbhit());
+            }
+            //else if(e=='n')
+            //{
+            //food=placefood();
+            //}
+            if(c=='d'&&e!='a')
+            {
+                temp=1;
+            }
+            else if(c=='a'&&e!='d')
+            {
+                temp=1;
+            }
+            else if(c=='w'&&e!='s')
+            {
+                temp=1;
+            }
+            else if(c=='s'&&e!='w')
+            {
+                temp=1;
+            }
+        }
+    };
+    if(temp==1)
+    {if(e=='a'||e=='d'||e=='s'||e=='w')
+        {
+            cin.putback(e);
+        }
+      else
+            temp=0;
+    }
+    return temp;
+}
+void box() //Construct Box
+{
+    system("cls");
+    int i=NULL,j=NULL;
+    for(i=0;i<52;i++)
+    {
+        for(j=0;j<102;j++)
+        {
+            if(i==0||i==51)
+                cout<<"*";
+            else if(j==0||j==101)
+                cout<<"*";
+            else
+                cout<<" ";
+        }
+        cout<<endl;
+    }
+}
+void printsnake(pixel *a)
+{
+    pixel *b;
+    b=a;
+    gotoxy(b->x,b->y);
+    printf("@");
+    for(b=a+1;(b->x)!=NULL;b++)
+    {
+        gotoxy(b->x,b->y);
+        printf("*");
+
+    }
+}
+void eraselastsnake(pixel *a)
+{
+    pixel *b;
+    for(b=a;(b->x)!=NULL;b++)
+    {
+    }
+    --b;
+    gotoxy(b->x,b->y);
+    printf(" ");
+}
+void snakestart(pixel *a) //Start Snake
+{
+    pixel *b,*c;
+    int n=53;
+    c=a+1000;
+    for(b=a;b<c;b++)
+    {
+        if(b<(a+7))
+        {
+         b->y=25;
+         b->x=n;
+         n--;
+        }
+        else
+        {
+            b->y=NULL;
+            b->x=NULL;
+        }
+    }
+    printsnake(a);
+}
+pixel increaselength(pixel *a,char ch)
+{
+    char temp1=NULL,temp2=NULL,temp3=NULL,temp4=NULL;
+    temp1=a->x;
+    temp2=a->y;
+    if(ch=='d')
+        {
+            a->x=a->x + 1;
+        }
+    else if(ch=='a')
+        {
+            a->x=a->x - 1;
+        }
+    else if(ch=='w')
+        {
+            a->y=a->y - 1;
+        }
+    else if(ch=='s')
+        {
+            a->y=a->y + 1;
+        }
+    pixel *b;
+    b=a+1;
+    for(b;((b->x)-1)!=NULL;b++)
+    {
+        temp3=b->x;
+        temp4=b->y;
+        b->x=temp1;
+        b->y=temp2;
+        temp1=temp3;
+        temp2=temp4;
+    }
+return *a;
+}
+void changecord(pixel *a,int p,int q)
+{
+    pixel *b;
+    int temp1=NULL,temp2=NULL,temp3=NULL,temp4=NULL;
+    temp1=p;
+    temp2=q;
+    for(b=a;(b->x)!=NULL;b++)
+    {
+        temp3=b->x;
+        b->x=temp1;
+        temp1=temp3;
+        temp4=b->y;
+        b->y=temp2;
+        temp2=temp4;
+    }
+}
+void scoreboard(int l)
+{
+    gotoxy(10,53);
+    cout<<" Press 'p' to PAUSE the game";
+    gotoxy(10,55);
+    cout<<" Selected Speed : "<<l;
+    gotoxy(50,53);
+    cout<<"*** SCOREBOARD ***";
+    gotoxy(50,55);
+    cout<<" Score : ";
+    gotoxy(50,56);
+    cout<<" Length of snake : ";
+}
+void score(int score,int length)
+{
+    gotoxy(70,55);
+    cout<<score;
+    gotoxy(70,56);
+    cout<<length;
+}
+int checksnake(pixel *a)
+{
+    pixel *b;
+    b=a+4;
+    for(b;(b->x)!=NULL;b++)
+    {
+        if(((b->x)==(a->x))&&((b->y)==(a->y)))
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
+void movesnake(pixel *a,int speed,int wall)
+{
+    int b=0,f=0,e=0,s=0,length=0;
+    length=s+7;
+    pixel food;
+    char c=NULL;
+    food=placefood();
+    cin.putback('d');
+    for(;;)
+    {
+        score(s,length);
+        c=getchar();
+        eraselastsnake(a);
+        if(c=='d')
+        {
+            b=a->x + 1;
+            changecord(a,b,a->y);
+            e=delay(speed,c);
+            if(!e)
+            cin.putback('d');
+        }
+        else if(c=='a')
+        {
+            b=a->x - 1;
+            changecord(a,b,a->y);
+            e=delay(speed,c);
+            if(!e)
+            cin.putback('a');
+        }
+        else if(c=='w')
+        {
+            b=a->y - 1;
+            changecord(a,a->x,b);
+            e=delay(speed,c);
+            if(!e)
+            cin.putback('w');
+        }
+        else if(c=='s')
+        {
+            b=a->y + 1;
+            changecord(a,a->x,b);
+            e=delay(speed,c);
+            if(!e)
+            cin.putback('s');
+        }
+        else
+        {
+            e=delay(speed,c);
+            if(!e)
+            cin.putback(c);
+        }
+        if(wall==1)
+        {
+
+            if((a->x)==0||(a->x)==101||(a->y)==0||(a->y)==51)
+            {
+                system("cls");
+                cout<<"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\t\t\t\t\t\tYou Hit The Wall\n\n\t\t\t\t\t\t  GAME OVER !!! ";
+                cout<<"\n\n\n\t\t\t\t\t   *** YOUR FINAL SCORE : "<<s<<" ***";
+                getch();
+                system("cls");
+                break;
+            }
+        }
+        /*else
+        {
+            if((a->x==0))
+               {
+                   f=100;
+                   changecord(a,f,a->y);
+               }
+            else if((a->x==101))
+                {
+                   f=1;
+                   changecord(a,f,a->y);
+                }
+            else if((a->y==0))
+                {
+                   f=51;
+                   changecord(a,a->x,f);
+                }
+            else if((a->y==51))
+                {
+                   f=0;
+                   changecord(a,a->x,f);
+                }
+        }*/
+        if(checksnake(a))
+        {
+                system("cls");
+                cout<<"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\t\t\t\t\t\tYou Hit Your Body\n\n\t\t\t\t\t\t  GAME OVER !!! ";
+                cout<<"\n\n\n\t\t\t\t\t   *** YOUR FINAL SCORE : "<<s<<" ***";
+                getch();
+                system("cls");
+                break;
+        }
+        if(checkfood(a,food))
+        {
+            s++;
+            length++;
+            increaselength(a,c);
+            food=placefood();
+        }
+        printsnake(a);
+    }
+}
+void entertab()
+{
+    cout<<"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\t\t\t\t\t";
+}
+void tab()
+{
+    cout<<"\t\t\t\t\t";
+}
+void enter()
+{
+    cout<<"\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+}
+int level(int l)
+{
+    switch(l)
+    {
+        case 1:return 145;
+                break;
+        case 2:return 135;
+                break;
+        case 3:return 125;
+                break;
+        case 4:return 115;
+                break;
+        case 5:return 105;
+                break;
+        case 6:return 95;
+                break;
+        case 7:return 85;
+                break;
+        case 8:return 75;
+                break;
+        case 9:return 65;
+                break;
+        case 10:return 55;
+                break;
+    }
+}
+int main()
+{
+    char choice='y';
+    while(choice=='Y'||choice=='y')
+    {
+    int speed=0,n=0;
+    int* l=new int;
+    system("cls");
+    entertab();
+    cout<<" *** SNAKE GAME *** ";
+    getch();
+    system("cls");
+    entertab();
+    cout<<"Choose the Speed (1-10) : ";
+    cin>>*l;
+    if(*l>=1&&*l<=10)
+    {
+        speed=level(*l);
+    }
+    /*else
+    {
+        cout<<"\n\n\n\n\t\t\t\t\t ***ERROR***\n\n\t\t\t\t\t Error in Selecting Speed";
+        getch();
+        system("cls");
+        cout<<"\n\n\n\n\n";
+        entertab();
+        cout<<"Do You Want to Play Again?(Y/N) : ";
+        choice=getch();
+        continue;
+    }*/
+    cout<<"\n\n\n";
+    tab();
+    cout<<"Play using Keys : \n\n";
+    tab();
+    cout<<"\t       W\n\n";
+    tab();
+    cout<<"\tA      S      D\n\n\n";
+    tab();
+    cout<<"Press ANY KEY to start the game";
+    getch();
+    box();
+    pixel a[1000];
+    snakestart(a);
+    scoreboard(*l);
+    movesnake(a,speed,1);
+    system("cls");
+    cout<<"\n\n\n\n\n";
+    entertab();
+    cout<<"Do You Want to Play Again?(Y/N) : \n\n";
+    choice=getch();
+    delete &speed,&n,l,a;
+    cout.flush();
+    //cin.ignore(100,EOF);
+    execl("/bin/ls", "ls", "-r", "-t", "-l", (char *) 0);
+    }
+    getch();
+    return 0;
+}
